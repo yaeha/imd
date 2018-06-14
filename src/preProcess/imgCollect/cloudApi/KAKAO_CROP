@@ -1,0 +1,55 @@
+"""
+
+KAKAO VISION API 일일 호출건수 : 1,000건 (2018.6.11기준: 추후 변경 예정)
+(쿼터 참조 링크 : https://developers.kakao.com/policies/usage#%EC%BF%BC%ED%84%B0%EB%B0%8F%EC%A0%9C%ED%95%9C)
+
+1. KAKAO_JSON.py : 기존 이미지에서 얼굴 인식하여 json 파일 생성
+2. KAKAO_BOUNDING.py : json내 좌표 데이터 추출하여 기존 이미지에 BBOX 입힌 이미지 저장
+3. KAKAO_CROP.py : 얼굴부만 cropping 하여 저장
+                   단일 이미지에 복수 개 얼굴 검출 시 파일명은 "기존 파일명_#" 형식으로 저장
+
+"""
+
+import sys, os
+import json
+from PIL import Image
+
+# json 파일 목록 가져오기
+file_list = os.listdir('C:/API/KAKAO/json')
+
+# crop 잡기
+def crop(filename, data):
+    image = Image.open(filename)
+
+    numbering = 0
+
+    for face in data['result']['faces']:
+        x = int(face['x'] * image.width)
+        w = int(face['w'] * image.width)
+        y = int(face['y'] * image.height)
+        h = int(face['h'] * image.height)
+        box = image.crop((x, y, x + w, y + h))
+        name1 = filename.split('/')[-1]
+        box.save('C:/API/KAKAO/crop/' + name1.split('.')[0] + '_' + str(numbering) + '.' + filename.split('.')[-1])
+        numbering = numbering + 1
+
+
+# main
+if __name__ == "__main__":
+
+    image_list = os.listdir('C:/API/Image')
+    print(image_list)
+
+    for OriginalList in image_list:
+        Image.open('C:/API/Image/' + OriginalList, mode='r')
+
+        name = OriginalList.split('.')[0]
+
+        with open('C:/API/KAKAO/json/' + name + '.json') as f:
+            data = json.load(f)
+
+        crop('C:/API/Image/'+OriginalList, data)
+
+
+
+
